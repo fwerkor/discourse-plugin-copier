@@ -21,9 +21,21 @@ function manualCopy(result) {
     range.selectNodeContents(content);
     selection.removeAllRanges();
     selection.addRange(range);
+    let wroteClipboard = false;
+    const writeCleanHtml = (event) => {
+      if (!event.clipboardData) {
+        return;
+      }
+      event.clipboardData.setData("text/html", result.html);
+      event.clipboardData.setData("text/plain", result.text);
+      event.preventDefault();
+      wroteClipboard = true;
+    };
+    document.addEventListener("copy", writeCleanHtml, true);
     const copied = document.execCommand("copy");
+    document.removeEventListener("copy", writeCleanHtml, true);
     selection.removeAllRanges();
-    if (copied) {
+    if (copied && wroteClipboard) {
       dialog.close();
     } else {
       window.alert(i18n("topic_discussion_exporter.select_manual"));

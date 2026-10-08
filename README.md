@@ -39,7 +39,8 @@ The server checks `current_user.admin?` **on every export request**, then applie
 
 HTML is intentionally restricted to styles and elements that tend to survive external rich-text editors. Third-party editor sanitizers may still modify the appearance or fail to import remote images. In that case upload pictures into your target editor separately.
 
-Since v1.0.1, all text-containing blocks use explicit pixel font sizes and line heights (e.g. `font-size:16px;line-height:29px`) rather than unitless inherited line heights. This reduces differences after rich-text clipboard import and avoids inadvertent small line heights in editors that rewrite pasted CSS. The target publishing editor may still rewrite markup, so review its own structure-checker warnings after pasting.
+Since v1.0.3, the export deliberately omits all inline styles, explicit font sizes, line heights and layout wrappers. Editors apply their own typography to the semantic HTML (headings, paragraphs, lists, quotes, links and tables). Preformatted code is converted to ordinary paragraphs with code text and explicit line breaks to avoid the mobile overflow warnings caused by the `pre` element. This avoids transferring potentially incompatible CSS when pasting into different rich-text editors.
+
 
 ## Development
 

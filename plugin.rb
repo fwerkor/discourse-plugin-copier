@@ -2,7 +2,7 @@
 
 # name: discourse-topic-discussion-exporter
 # about: Administrator-only rich HTML export of complete Discourse topics.
-# version: 1.0.2
+# version: 1.0.3
 # authors: fwerkor
 # url: https://github.com/fwerkor/discourse-plugin-copier
 

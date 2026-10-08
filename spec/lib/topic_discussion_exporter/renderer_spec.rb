@@ -44,38 +44,40 @@ RSpec.describe TopicDiscussionExporter::Renderer do
     expect(html).to include("Hello &lt;World&gt;")
   end
 
-  it "sets safe explicit pixel line heights on every text container" do
+  it "exports minimal semantic HTML without editor-specific CSS" do
     cooked = <<~HTML
-      <h2>Heading with long enough words for multiple lines</h2>
-      <p>Text <strong>bold</strong> and <em>italic</em> before a
-      <a href="/t/another/1">long link with more words</a>.</p>
-      <aside class="quote"><p>Quoted paragraph across several lines.</p></aside>
-      <ul><li>Long list item <strong>with emphasis</strong></li></ul>
+      <h2>Heading</h2>
+      <p style="font-size:1px;line-height:0"><strong>Bold</strong> and <em>italic</em> text.</p>
+      <aside class="quote"><p>Quoted paragraph</p></aside>
+      <ul><li>List item</li></ul>
       <table><tr><td>Cell with text</td></tr></table>
-      <pre><code>example code with a long string</code></pre>
-      <aside class="onebox"><a href="https://example.com">Oneboxed URL</a></aside>
+      <pre><code>example code</code></pre>
+      <aside class="onebox"><a href="https://example.com">Link preview</a></aside>
     HTML
 
     html = described_class.new(topic, [sample_post(1, cooked)]).call[:html]
-    doc = Nokogiri::HTML.fragment(html)
-    containers = doc.css("div, section, p, h1, h2, h3, h4, ul, ol, li, blockquote, pre, table, td, th")
-    expect(containers).not_to be_empty
-    containers.each do |node|
-      style = node["style"].to_s
-      font_size = style[/font-size:(\d+)px/, 1].to_i
-      line_height = style[/line-height:(\d+)px/, 1].to_i
+    document = Nokogiri::HTML.fragment(html)
 
-      expect(line_height).to be >= 24, "Missing or unsafe line-height on #{node.name}: #{style}"
-      expect(line_height).to be >= font_size * 1.5, "Insufficient line spacing on #{node.name}: #{style}"
-    end
-    expect(html).not_to match(/line-height:\d+(?:\.\d+)?;/)
-    expect(html).not_to include("font-family:")
+    expect(document.children.map(&:name)).to include("h1", "p", "h2", "blockquote", "ul", "table")
+    expect(html).to include("<strong>Bold</strong>", "<em>italic</em>", "<blockquote>", "<li>List item</li>")
+    expect(html).to include("<a href=\"https://example.com\">Link preview</a>")
+    expect(html).to include("<p><code>example&nbsp;code</code></p>")
+    expect(html).not_to include("<pre")
+    expect(html).not_to match(/style\s*=/i)
+    expect(html).not_to include("<section", "<div", "font-size", "line-height")
+  end
+
+  it "preserves indentation and newlines in code without a pre element" do
+    cooked = "<pre><code>if (x) {\n  call();\n}</code></pre>"
+    html = described_class.new(topic, [sample_post(1, cooked)]).call[:html]
+    expect(html).to include("if&nbsp;(x)&nbsp;{<br>&nbsp;&nbsp;call();<br>}")
+    expect(html).not_to include("<pre", "style=")
   end
 
   it "preserves images, tables and code without inheriting arbitrary CSS" do
     cooked = '<table><tr><td colspan="2" style="background:lime">A</td></tr></table><pre><code>if (x < 1) { y++; }</code></pre>'
     html = described_class.new(topic, [sample_post(1, cooked)]).call[:html]
-    expect(html).to include("<table", 'colspan="2"', "if (x &lt; 1)")
+    expect(html).to include("<table", 'colspan="2"', "if&nbsp;(x&nbsp;&lt;&nbsp;1)")
     expect(html).not_to include("background:lime")
   end
 end

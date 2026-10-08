@@ -9,25 +9,6 @@ module ::TopicDiscussionExporter
     OMIT = %w[script style iframe object embed form button input select textarea
               canvas video audio noscript svg meta link].freeze
 
-    STYLES = {
-      "p" => "font-size:16px;line-height:29px;margin:0 0 14px;",
-      "h1" => "font-size:22px;line-height:36px;font-weight:700;margin:20px 0 12px;",
-      "h2" => "font-size:19px;line-height:32px;font-weight:700;margin:19px 0 11px;",
-      "h3" => "font-size:17px;line-height:29px;font-weight:700;margin:16px 0 9px;",
-      "h4" => "font-size:16px;line-height:28px;font-weight:700;margin:14px 0 8px;",
-      "ul" => "font-size:16px;line-height:29px;padding-left:24px;margin:0 0 14px;",
-      "ol" => "font-size:16px;line-height:29px;padding-left:24px;margin:0 0 14px;",
-      "li" => "font-size:16px;line-height:29px;margin-bottom:5px;",
-      "blockquote" => "font-size:16px;line-height:29px;margin:12px 0 16px;padding:4px 0 4px 14px;border-left:3px solid #b7b7b7;color:#555;",
-      "pre" => "white-space:pre-wrap;word-break:break-word;font-size:14px;line-height:26px;margin:12px 0;padding:8px 0 8px 12px;border-left:2px solid #ccc;",
-      "code" => "overflow-wrap:anywhere;",
-      "a" => "color:#1769aa;text-decoration:underline;",
-      "img" => "max-width:100%;height:auto;display:inline-block;",
-      "table" => "font-size:16px;line-height:29px;border-collapse:collapse;width:100%;margin:12px 0;",
-      "td" => "font-size:16px;line-height:29px;border:1px solid #ddd;padding:6px 9px;vertical-align:top;",
-      "th" => "font-size:16px;line-height:29px;border:1px solid #ddd;padding:6px 9px;font-weight:700;text-align:left;",
-    }.freeze
-
     TAGS = %w[p br strong b em i del u s h1 h2 h3 h4 ul ol li blockquote
               pre code a img table thead tbody tr td th hr sup sub].freeze
 
@@ -42,30 +23,24 @@ module ::TopicDiscussionExporter
       text = +"#{@topic.title}\n#{topic_url}\n"
       count = 0
 
-      html << %(<div style="color:#262626;font-size:16px;line-height:29px;overflow-wrap:break-word;">)
-      html << %(<h1 style="font-size:25px;line-height:40px;font-weight:700;margin:0 0 12px;">#{escape(@topic.title)}</h1>)
-      html << %(<p style="color:#777;font-size:13px;line-height:24px;margin:0 0 25px;">)
-      html << %(#{escape(topic_url)}</p>)
+      html << %(<h1>#{escape(@topic.title)}</h1>)
+      html << %(<p><a href="#{escape(topic_url)}">#{escape(topic_url)}</a></p>)
 
       @posts.each do |post|
         count += 1
         author = post.user&.name.presence || post.user&.username || "Deleted user"
         date = post.created_at.utc.strftime("%Y-%m-%d %H:%M UTC")
-        html << %(<section style="font-size:16px;line-height:29px;margin:0 0 25px;">)
         if count > 1
-          html << %(<hr style="border:0;border-top:1px solid #e5e5e5;margin:25px 0 15px;">)
+          html << "<hr>"
         end
-        html << %(<p style="color:#777;font-size:13px;line-height:24px;margin:0 0 12px;">)
-        html << %(<strong style="color:#333;">#{escape(author)}</strong> · #{escape(date)} · ##{post.post_number}</p>)
+        html << %(<p><strong>#{escape(author)}</strong> · #{escape(date)} · ##{post.post_number}</p>)
         html << sanitize(post.cooked.to_s)
-        html << %(</section>)
 
         text << "\n#{author} · #{date} · ##{post.post_number}\n"
         text << Nokogiri::HTML.fragment(post.cooked.to_s).text.strip
         text << "\n"
       end
 
-      html << %(</div>)
       { html: html, text: text.strip, post_count: count }
     end
 
@@ -114,16 +89,16 @@ module ::TopicDiscussionExporter
       if node["class"]&.split&.include?("onebox")
         link = node.at_css("a[href]")
         href = safe_url(link&.[]("href"))
-        return href ? %(<p style="#{STYLES["p"]}"><a style="#{STYLES["a"]}" href="#{escape(href)}">#{escape(link.text.strip.presence || href)}</a></p>) : ""
+        return href ? %(<p><a href="#{escape(href)}">#{escape(link.text.strip.presence || href)}</a></p>) : ""
       end
 
       children = node.children.map { |child| render_node(child) }.join
-      return %(<blockquote style="#{STYLES["blockquote"]}">#{children}</blockquote>) if tag == "aside" && node["class"]&.split&.include?("quote")
+      return "<blockquote>#{children}</blockquote>" if tag == "aside" && node["class"]&.split&.include?("quote")
       return children unless TAGS.include?(tag)
 
       tag = "strong" if tag == "b"
       tag = "em" if tag == "i"
-      attributes = STYLES[tag] ? %( style="#{STYLES[tag]}") : ""
+      attributes = +""
 
       case tag
       when "a"
@@ -139,7 +114,8 @@ module ::TopicDiscussionExporter
         attributes << %( alt="#{escape(node["alt"])}") if node["alt"]
         return "<img#{attributes}>"
       when "pre"
-        return "<pre#{attributes}>#{escape(node.text)}</pre>"
+        code = escape(node.text).gsub("\r\n", "\n").gsub("\t", "    ")
+        return "<p><code>#{code.gsub(" ", "&nbsp;").gsub("\n", "<br>")}</code></p>"
       when "br", "hr"
         return "<#{tag}#{attributes}>"
       when "td", "th"
