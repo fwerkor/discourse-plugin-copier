@@ -1,0 +1,10 @@
+en:
+  js:
+    topic_discussion_exporter:
+      copy: "Copy discussion for article"
+      copied: "The complete discussion has been copied with rich formatting."
+      failed: "Could not export this discussion."
+      preview: "Copy formatted discussion"
+      copy_rich: "Copy rich text"
+      close: "Close"
+      select_manual: "Automatic copying failed. Select the content and copy it manually."

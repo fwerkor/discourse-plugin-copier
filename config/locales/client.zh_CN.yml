@@ -1,0 +1,10 @@
+zh_CN:
+  js:
+    topic_discussion_exporter:
+      copy: "复制讨论到公众号"
+      copied: "已复制整帖讨论（含富文本格式），可粘贴到文章编辑器。"
+      failed: "导出讨论失败，请检查权限或稍后重试。"
+      preview: "复制排版后的讨论"
+      copy_rich: "复制富文本"
+      close: "关闭"
+      select_manual: "自动复制失败，请手动选择内容复制。"

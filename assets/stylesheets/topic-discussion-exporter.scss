@@ -1,0 +1,28 @@
+.topic-discussion-exporter-dialog {
+  width: min(90vw, 850px);
+  max-height: 85vh;
+  padding: 20px;
+  border: 1px solid var(--primary-low);
+  border-radius: 8px;
+  color: var(--primary);
+  background: var(--secondary);
+
+  &::backdrop {
+    background: rgb(0 0 0 / 50%);
+  }
+
+  .topic-discussion-exporter-content {
+    max-height: 55vh;
+    padding: 12px;
+    overflow: auto;
+    background: white;
+    color: #262626;
+    border: 1px solid #ddd;
+  }
+
+  button {
+    margin: 12px 10px 0 0;
+    padding: 8px 16px;
+    cursor: pointer;
+  }
+}
