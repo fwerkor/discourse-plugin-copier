@@ -10,22 +10,22 @@ module ::TopicDiscussionExporter
               canvas video audio noscript svg meta link].freeze
 
     STYLES = {
-      "p" => "margin:0 0 14px;line-height:1.85;",
-      "h1" => "font-size:22px;font-weight:700;line-height:1.45;margin:20px 0 12px;",
-      "h2" => "font-size:19px;font-weight:700;line-height:1.5;margin:19px 0 11px;",
-      "h3" => "font-size:17px;font-weight:700;line-height:1.5;margin:16px 0 9px;",
-      "h4" => "font-size:16px;font-weight:700;line-height:1.5;margin:14px 0 8px;",
-      "ul" => "padding-left:24px;margin:0 0 14px;",
-      "ol" => "padding-left:24px;margin:0 0 14px;",
-      "li" => "line-height:1.8;margin-bottom:5px;",
-      "blockquote" => "margin:12px 0 16px;padding:4px 0 4px 14px;border-left:3px solid #b7b7b7;color:#555;",
-      "pre" => "white-space:pre-wrap;word-break:break-word;font-size:13px;line-height:1.65;margin:12px 0;padding:8px 0 8px 12px;border-left:2px solid #ccc;",
-      "code" => "font-family:Consolas,Monaco,monospace;overflow-wrap:anywhere;",
+      "p" => "font-size:16px;line-height:29px;margin:0 0 14px;",
+      "h1" => "font-size:22px;line-height:36px;font-weight:700;margin:20px 0 12px;",
+      "h2" => "font-size:19px;line-height:32px;font-weight:700;margin:19px 0 11px;",
+      "h3" => "font-size:17px;line-height:29px;font-weight:700;margin:16px 0 9px;",
+      "h4" => "font-size:16px;line-height:28px;font-weight:700;margin:14px 0 8px;",
+      "ul" => "font-size:16px;line-height:29px;padding-left:24px;margin:0 0 14px;",
+      "ol" => "font-size:16px;line-height:29px;padding-left:24px;margin:0 0 14px;",
+      "li" => "font-size:16px;line-height:29px;margin-bottom:5px;",
+      "blockquote" => "font-size:16px;line-height:29px;margin:12px 0 16px;padding:4px 0 4px 14px;border-left:3px solid #b7b7b7;color:#555;",
+      "pre" => "white-space:pre-wrap;word-break:break-word;font-size:14px;line-height:26px;margin:12px 0;padding:8px 0 8px 12px;border-left:2px solid #ccc;",
+      "code" => "overflow-wrap:anywhere;",
       "a" => "color:#1769aa;text-decoration:underline;",
       "img" => "max-width:100%;height:auto;display:inline-block;",
-      "table" => "border-collapse:collapse;width:100%;margin:12px 0;",
-      "td" => "border:1px solid #ddd;padding:6px 9px;vertical-align:top;",
-      "th" => "border:1px solid #ddd;padding:6px 9px;font-weight:700;text-align:left;",
+      "table" => "font-size:16px;line-height:29px;border-collapse:collapse;width:100%;margin:12px 0;",
+      "td" => "font-size:16px;line-height:29px;border:1px solid #ddd;padding:6px 9px;vertical-align:top;",
+      "th" => "font-size:16px;line-height:29px;border:1px solid #ddd;padding:6px 9px;font-weight:700;text-align:left;",
     }.freeze
 
     TAGS = %w[p br strong b em i del u s h1 h2 h3 h4 ul ol li blockquote
@@ -42,20 +42,20 @@ module ::TopicDiscussionExporter
       text = +"#{@topic.title}\n#{topic_url}\n"
       count = 0
 
-      html << %(<div style="color:#262626;font-size:15px;line-height:1.8;overflow-wrap:break-word;">)
-      html << %(<h1 style="font-size:25px;font-weight:700;line-height:1.4;margin:0 0 12px;">#{escape(@topic.title)}</h1>)
-      html << %(<p style="color:#777;font-size:12px;margin:0 0 25px;">)
+      html << %(<div style="color:#262626;font-size:16px;line-height:29px;overflow-wrap:break-word;">)
+      html << %(<h1 style="font-size:25px;line-height:40px;font-weight:700;margin:0 0 12px;">#{escape(@topic.title)}</h1>)
+      html << %(<p style="color:#777;font-size:13px;line-height:24px;margin:0 0 25px;">)
       html << %(#{escape(topic_url)}</p>)
 
       @posts.each do |post|
         count += 1
         author = post.user&.name.presence || post.user&.username || "Deleted user"
         date = post.created_at.utc.strftime("%Y-%m-%d %H:%M UTC")
-        html << %(<section style="margin:0 0 25px;">)
+        html << %(<section style="font-size:16px;line-height:29px;margin:0 0 25px;">)
         if count > 1
           html << %(<hr style="border:0;border-top:1px solid #e5e5e5;margin:25px 0 15px;">)
         end
-        html << %(<p style="color:#777;font-size:13px;margin:0 0 12px;">)
+        html << %(<p style="color:#777;font-size:13px;line-height:24px;margin:0 0 12px;">)
         html << %(<strong style="color:#333;">#{escape(author)}</strong> · #{escape(date)} · ##{post.post_number}</p>)
         html << sanitize(post.cooked.to_s)
         html << %(</section>)
@@ -114,7 +114,7 @@ module ::TopicDiscussionExporter
       if node["class"]&.split&.include?("onebox")
         link = node.at_css("a[href]")
         href = safe_url(link&.[]("href"))
-        return href ? %(<p><a style="#{STYLES["a"]}" href="#{escape(href)}">#{escape(link.text.strip.presence || href)}</a></p>) : ""
+        return href ? %(<p style="#{STYLES["p"]}"><a style="#{STYLES["a"]}" href="#{escape(href)}">#{escape(link.text.strip.presence || href)}</a></p>) : ""
       end
 
       children = node.children.map { |child| render_node(child) }.join

@@ -39,6 +39,8 @@ The server checks `current_user.admin?` **on every export request**, then applie
 
 HTML is intentionally restricted to styles and elements that tend to survive external rich-text editors. Third-party editor sanitizers may still modify the appearance or fail to import remote images. In that case upload pictures into your target editor separately.
 
+Since v1.0.1, all text-containing blocks use explicit pixel font sizes and line heights (e.g. `font-size:16px;line-height:29px`) rather than unitless inherited line heights. This reduces differences after rich-text clipboard import and avoids inadvertent small line heights in editors that rewrite pasted CSS. The target publishing editor may still rewrite markup, so review its own structure-checker warnings after pasting.
+
 ## Development
 
 Ruby renderer specs live under `spec/lib/topic_discussion_exporter`; run them inside a Discourse development/test installation with the plugin installed:
