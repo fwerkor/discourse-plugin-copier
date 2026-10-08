@@ -44,40 +44,60 @@ RSpec.describe TopicDiscussionExporter::Renderer do
     expect(html).to include("Hello &lt;World&gt;")
   end
 
-  it "exports minimal semantic HTML without editor-specific CSS" do
+  it "keeps prose minimal while rendering scrollable dark code blocks by default" do
     cooked = <<~HTML
       <h2>Heading</h2>
       <p style="font-size:1px;line-height:0"><strong>Bold</strong> and <em>italic</em> text.</p>
       <aside class="quote"><p>Quoted paragraph</p></aside>
       <ul><li>List item</li></ul>
       <table><tr><td>Cell with text</td></tr></table>
-      <pre><code>example code</code></pre>
+      <pre><code>example code with a very long line that must not wrap</code></pre>
       <aside class="onebox"><a href="https://example.com">Link preview</a></aside>
     HTML
 
     html = described_class.new(topic, [sample_post(1, cooked)]).call[:html]
     document = Nokogiri::HTML.fragment(html)
+    container = document.at_css("div[style*=overflow-x]")
 
-    expect(document.children.map(&:name)).to include("h1", "p", "h2", "blockquote", "ul", "table")
+    expect(container).not_to be_nil
+    expect(container["style"]).to include("background-color:#161b22", "overflow-x:auto", "max-width:100%")
+    expect(container.at_css("code")["style"]).to include("white-space:pre", "font-family:")
+    expect(container.at_css("code").text).to include("example code with a very long line")
+    expect(document.children.map(&:name)).to include("h1", "p", "h2", "blockquote", "ul", "table", "div")
     expect(html).to include("<strong>Bold</strong>", "<em>italic</em>", "<blockquote>", "<li>List item</li>")
-    expect(html).to include("<a href=\"https://example.com\">Link preview</a>")
-    expect(html).to include("<p><code>example&nbsp;code</code></p>")
-    expect(html).not_to include("<pre")
-    expect(html).not_to match(/style\s*=/i)
-    expect(html).not_to include("<section", "<div", "font-size", "line-height")
+    expect(html).to include('<a href="https://example.com">Link preview</a>')
+    expect(html).not_to include("<pre", "line-height:", "font-size:")
+    expect(document.css("[style]").size).to eq(2)
+    expect(document.css("p[style], h1[style], h2[style], ul[style], td[style]")).to be_empty
   end
 
-  it "preserves indentation and newlines in code without a pre element" do
-    cooked = "<pre><code>if (x) {\n  call();\n}</code></pre>"
+  it "preserves code indentation, newlines and syntax colors without trusting source styles" do
+    cooked = <<~HTML
+      <pre><code class="lang-python hljs"><span class="hljs-keyword" style="background:red">def</span> greet():
+        <span class="hljs-string">"hello"</span>  # comment
+      </code></pre>
+    HTML
     html = described_class.new(topic, [sample_post(1, cooked)]).call[:html]
-    expect(html).to include("if&nbsp;(x)&nbsp;{<br>&nbsp;&nbsp;call();<br>}")
-    expect(html).not_to include("<pre", "style=")
+    code = Nokogiri::HTML.fragment(html).at_css("div > code")
+
+    expect(code.inner_html).to include('<span style="color:#ff7b72;">def</span>')
+    expect(code.css("span[style]").last.text).to eq('"hello"')
+    expect(code.css("span[style]").last["style"]).to eq("color:#a5d6ff;")
+    expect(code.text).to include("greet():\n", '  # comment')
+    expect(html).not_to include("background:red", "class=", "<pre", "line-height:")
+  end
+
+  it "escapes unknown tokens and active content inside code" do
+    cooked = '<pre><code><span style="font-size:1px" class="unknown">x</span>&lt;script&gt;alert(1)&lt;/script&gt;<img src=x onerror=alert(1)></code></pre>'
+    html = described_class.new(topic, [sample_post(1, cooked)]).call[:html]
+    expect(html).to include('x&lt;script&gt;alert(1)&lt;/script&gt;')
+    expect(html).not_to include("font-size:1px", "onerror", "<img")
   end
 
   it "preserves images, tables and code without inheriting arbitrary CSS" do
     cooked = '<table><tr><td colspan="2" style="background:lime">A</td></tr></table><pre><code>if (x < 1) { y++; }</code></pre>'
     html = described_class.new(topic, [sample_post(1, cooked)]).call[:html]
-    expect(html).to include("<table", 'colspan="2"', "if&nbsp;(x&nbsp;&lt;&nbsp;1)")
+    expect(html).to include("<table", 'colspan="2"', "if (x &lt; 1)")
     expect(html).not_to include("background:lime")
   end
 end

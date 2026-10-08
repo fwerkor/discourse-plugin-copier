@@ -7,8 +7,8 @@ An open-source Discourse plugin for copying **an entire topic**, including its r
 - Administrator-only export action at the bottom of a topic and in the topic admin menu.
 - Server-side export of **all visible regular posts**, in chronological order. It does not depend on posts loaded into the browser.
 - Article structure: title, source URL, authors, UTC timestamps, post numbers and the complete conversation.
-- Whitelisted text formatting: headings, paragraphs, lists, quotes, code, images, links and tables.
-- Removes forum chrome, embeds, scripts, arbitrary inline styles, background colors and tracking-related presentation.
+- Whitelisted text formatting: headings, paragraphs, lists, quotes, code, images, links and tables. Code blocks have a dark background, preserved indentation, horizontal scrolling and optional syntax colors for Discourse-highlighted tokens.
+- Removes forum chrome, embeds, scripts, arbitrary inline styles and tracking-related presentation. The only intentionally styled areas are exported code blocks.
 - Writes both `text/html` and `text/plain` to the clipboard (Clipboard API). If direct clipboard access is unavailable, opens a rich-text copy dialog.
 - English and Simplified Chinese UI.
 - No AIA-specific identifiers or hard-coded hosting paths.
@@ -39,7 +39,7 @@ The server checks `current_user.admin?` **on every export request**, then applie
 
 HTML is intentionally restricted to styles and elements that tend to survive external rich-text editors. Third-party editor sanitizers may still modify the appearance or fail to import remote images. In that case upload pictures into your target editor separately.
 
-Since v1.0.3, the export deliberately omits all inline styles, explicit font sizes, line heights and layout wrappers. Editors apply their own typography to the semantic HTML (headings, paragraphs, lists, quotes, links and tables). Preformatted code is converted to ordinary paragraphs with code text and explicit line breaks to avoid the mobile overflow warnings caused by the `pre` element. This avoids transferring potentially incompatible CSS when pasting into different rich-text editors.
+Since v1.0.4, prose and metadata remain minimally styled, while code blocks use an isolated dark scrollable container with `white-space:pre` and syntax colors if Discourse supplied Highlight.js token classes. No explicit line heights or font sizes are exported. Rich-text editors may strip the scrolling styles or flag non-wrapping code as a mobile overflow; review the pasted result in the target editor.
 
 
 ## Development

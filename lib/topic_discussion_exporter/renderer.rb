@@ -12,6 +12,30 @@ module ::TopicDiscussionExporter
     TAGS = %w[p br strong b em i del u s h1 h2 h3 h4 ul ol li blockquote
               pre code a img table thead tbody tr td th hr sup sub].freeze
 
+    CODE_CONTAINER_STYLE = "box-sizing:border-box;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;" \
+                           "background-color:#161b22;color:#e6edf3;border-radius:8px;padding:12px 14px;margin:12px 0;".freeze
+    CODE_STYLE = "display:block;white-space:pre;font-family:Consolas,Monaco,monospace;".freeze
+
+    HIGHLIGHT_COLORS = {
+      "hljs-keyword" => "#ff7b72",
+      "hljs-built_in" => "#ffa657",
+      "hljs-type" => "#ffa657",
+      "hljs-literal" => "#79c0ff",
+      "hljs-number" => "#79c0ff",
+      "hljs-string" => "#a5d6ff",
+      "hljs-regexp" => "#a5d6ff",
+      "hljs-attr" => "#79c0ff",
+      "hljs-attribute" => "#79c0ff",
+      "hljs-title" => "#d2a8ff",
+      "hljs-function" => "#d2a8ff",
+      "hljs-params" => "#e6edf3",
+      "hljs-variable" => "#ffa657",
+      "hljs-comment" => "#8b949e",
+      "hljs-meta" => "#8b949e",
+      "hljs-addition" => "#aff5b4",
+      "hljs-deletion" => "#ffa198",
+    }.freeze
+
     def initialize(topic, posts, base_url: Discourse.base_url)
       @topic = topic
       @posts = posts
@@ -75,6 +99,18 @@ module ::TopicDiscussionExporter
       fragment.children.map { |child| render_node(child) }.join
     end
 
+    def render_code(node)
+      return escape(node.text) if node.text?
+      return "" unless node.element?
+      return "" if OMIT.include?(node.name.downcase)
+
+      content = node.children.map { |child| render_code(child) }.join
+      return content unless node.name.downcase == "span"
+
+      color = node["class"]&.split&.filter_map { |klass| HIGHLIGHT_COLORS[klass] }&.first
+      color ? %(<span style="color:#{color};">#{content}</span>) : content
+    end
+
     def render_node(node)
       return escape(node.text) if node.text?
       return "" unless node.element?
@@ -114,8 +150,8 @@ module ::TopicDiscussionExporter
         attributes << %( alt="#{escape(node["alt"])}") if node["alt"]
         return "<img#{attributes}>"
       when "pre"
-        code = escape(node.text).gsub("\r\n", "\n").gsub("\t", "    ")
-        return "<p><code>#{code.gsub(" ", "&nbsp;").gsub("\n", "<br>")}</code></p>"
+        code = node.at_css("code") || node
+        return %(<div style="#{CODE_CONTAINER_STYLE}"><code style="#{CODE_STYLE}">#{render_code(code)}</code></div>)
       when "br", "hr"
         return "<#{tag}#{attributes}>"
       when "td", "th"
