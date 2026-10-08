@@ -1,8 +1,8 @@
 en:
   js:
     topic_discussion_exporter:
-      copy: "Copy discussion for article"
-      copied: "The complete discussion has been copied with rich formatting."
+      copy: "Copy full discussion"
+      copied: "The full discussion has been copied with rich formatting."
       failed: "Could not export this discussion."
       preview: "Copy formatted discussion"
       copy_rich: "Copy rich text"

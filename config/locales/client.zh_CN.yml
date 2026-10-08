@@ -1,8 +1,8 @@
 zh_CN:
   js:
     topic_discussion_exporter:
-      copy: "复制讨论到公众号"
-      copied: "已复制整帖讨论（含富文本格式），可粘贴到文章编辑器。"
+      copy: "复制讨论全文"
+      copied: "已复制讨论全文（含富文本格式）。"
       failed: "导出讨论失败，请检查权限或稍后重试。"
       preview: "复制排版后的讨论"
       copy_rich: "复制富文本"

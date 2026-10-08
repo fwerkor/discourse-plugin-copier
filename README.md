@@ -1,6 +1,6 @@
-# Discourse Topic Discussion Exporter
+# Discourse Plugin Copier
 
-An open-source Discourse plugin for copying **an entire topic**, including its replies, into a clean, editor-friendly rich-text article. Designed with WeChat Official Accounts editors in mind, but not tied to any forum, account or publishing service.
+An open-source Discourse plugin for copying **an entire topic**, including its replies, into a clean, editor-friendly rich-text article. Works with any rich-text editor that accepts HTML pasted from the clipboard.
 
 ## Features
 
@@ -22,14 +22,14 @@ Discourse with support for plugin `api-initializers` and the Topic Footer Button
 In `/var/discourse/containers/app.yml`, under `hooks.after_code.exec`:
 
 ```yaml
-- git clone https://github.com/fwerkor/discourse-topic-discussion-exporter.git
+- git clone https://github.com/fwerkor/discourse-plugin-copier.git discourse-topic-discussion-exporter
 ```
 
 Run `cd /var/discourse && ./launcher rebuild app`. Alternatively, mount the plugin directory at `/var/www/discourse/plugins/discourse-topic-discussion-exporter` and rebuild. A running Discourse server must load the Ruby controller and build the frontend assets.
 
 ## Usage
 
-Sign in as an **administrator**, open a regular topic and choose **Copy discussion for article** at the bottom of the topic or under the topic admin menu. Paste into a rich-text editor. On browsers without permission to copy formatted content, use the copy button inside the fallback preview.
+Sign in as an **administrator**, open a regular topic and choose **Copy full discussion** at the bottom of the topic or under the topic admin menu. Paste into a rich-text editor. On browsers without permission to copy formatted content, use the copy button inside the fallback preview.
 
 ### Access and privacy
 
